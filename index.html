@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ömer'in Kelime Kartları</title>
+<meta name="theme-color" content="#0f6fae">
+<link rel="icon" href="img/1F4D5.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{
+  --bg:#e9f3f8; --card:#ffffff; --ink:#15314b; --muted:#5a6f84; --line:#d2e1ea;
+  --accent:#f26b1d; --accent-ink:#ffffff; --blue:#0f6fae; --blue-soft:#d8ecf8;
+  --glow:#ffe3cf; --shadow:0 2px 0 #c9dbe6;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1b26; --card:#172837; --ink:#eaf2f8; --muted:#9db2c4; --line:#27404f;
+    --accent:#ff8a45; --accent-ink:#1c0e04; --blue:#5cb4ee; --blue-soft:#1d3a50;
+    --glow:#3a2a1f; --shadow:0 2px 0 #0a131b; color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:16px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:grid;gap:14px}
+button{font:inherit;color:inherit}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* top bar */
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding-block:8px;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+.nav{width:48px;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);cursor:pointer;font-size:1.5rem;line-height:1;display:grid;place-items:center;text-decoration:none;color:var(--ink)}
+.nav[aria-disabled="true"]{opacity:.35;pointer-events:none}
+.ttl{text-align:center;display:grid;gap:0}
+.ttl h1{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:1.35rem;margin:0;line-height:1.2;text-wrap:balance}
+.ttl small{color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:8px}
+.ctl{border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow);border-radius:999px;padding:10px 16px;cursor:pointer;font-weight:700;display:inline-flex;gap:8px;align-items:center;min-height:44px}
+.ctl[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--ink)}
+.ctl.play{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ctl.play[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:1fr;gap:12px}
+@media (min-width:560px){.cards{grid-template-columns:1fr 1fr}}
+.card{display:grid;grid-template-columns:84px 1fr;gap:14px;align-items:center;text-align:left;cursor:pointer;
+  background:var(--card);border:2px solid var(--line);border-radius:20px;padding:12px 14px;box-shadow:var(--shadow);transition:transform .12s,border-color .12s,background .12s}
+.card:active{transform:scale(.98)}
+.card.on{border-color:var(--accent);background:var(--glow)}
+.pic{width:84px;height:84px;display:grid;place-items:center}
+.pic img{width:84px;height:84px}
+.dot{width:66px;height:66px;border-radius:50%;border:3px solid var(--ink)}
+.num{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:3rem;color:var(--blue);line-height:1}
+.none{font-size:2.4rem}
+.txt{display:grid;gap:2px;min-width:0}
+.nl{font-family:"Fredoka",system-ui,sans-serif;font-weight:500;font-size:1.7rem;line-height:1.15;overflow-wrap:anywhere}
+.nl .art{color:var(--blue);font-weight:400}
+.tr{color:var(--muted);font-size:1rem}
+.card.stack{grid-template-columns:64px 1fr}
+.card.stack .pic,.card.stack .pic img{width:64px;height:64px}
+.card.stack .nl{font-size:1.45rem}
+
+/* home */
+.hero{display:grid;gap:6px;padding-block:10px 4px}
+.hero h1{font-family:"Fredoka",system-ui,sans-serif;font-weight:600;font-size:2rem;margin:0;line-height:1.1}
+.hero p{margin:0;color:var(--muted);max-width:60ch}
+.topics{display:grid;gap:10px}
+.topic{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 14px;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;box-shadow:var(--shadow)}
+.topic img{width:52px;height:52px}
+.topic h2{margin:0;font-family:"Fredoka",system-ui,sans-serif;font-weight:500;font-size:1.2rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-grid;place-items:center;min-width:40px;height:36px;padding-inline:10px;border-radius:10px;background:var(--blue-soft);color:var(--ink);text-decoration:none;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* settings */
+details.set{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 14px}
+details.set summary{cursor:pointer;font-weight:700;min-height:32px;display:flex;align-items:center}
+.set .body{display:grid;gap:10px;padding-top:8px}
+.set label{font-weight:700;font-size:.9rem}
+.set select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px}
+.set p{margin:0;font-size:.9rem;color:var(--muted)}
+.warn{background:var(--glow);border-radius:12px;padding:10px 12px;font-size:.95rem}
+footer{color:var(--muted);font-size:.8rem;text-align:center;padding-top:8px}
+footer a{color:inherit}
+@media (prefers-reduced-motion: reduce){.card{transition:none}.card:active{transform:none}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const PAGES = [{"page": 1, "tr": "Vücudum", "nl": "Mijn lichaam", "stack": false, "items": [{"tr": "baş", "nl": "het hoofd", "pic": "1F642"}, {"tr": "saç", "nl": "het haar", "pic": "1F471"}, {"tr": "göz", "nl": "het oog", "pic": "1F441"}, {"tr": "kulak", "nl": "het oor", "pic": "1F442"}, {"tr": "burun", "nl": "de neus", "pic": "1F443"}]}, {"page": 2, "tr": "Vücudum", "nl": "Mijn lichaam", "stack": false, "items": [{"tr": "ağız", "nl": "de mond", "pic": "1F444"}, {"tr": "diş", "nl": "de tand", "pic": "1F9B7"}, {"tr": "dil", "nl": "de tong", "pic": "1F60B"}, {"tr": "el", "nl": "de hand", "pic": "270B"}, {"tr": "parmak", "nl": "de vinger", "pic": "261D"}]}, {"page": 3, "tr": "Vücudum", "nl": "Mijn lichaam", "stack": false, "items": [{"tr": "kol", "nl": "de arm", "pic": "1F4AA"}, {"tr": "karın", "nl": "de buik", "pic": null}, {"tr": "bacak", "nl": "het been", "pic": "1F9B5"}, {"tr": "ayak", "nl": "de voet", "pic": "1F9B6"}]}, {"page": 4, "tr": "Renkler", "nl": "Kleuren", "stack": false, "items": [{"tr": "kırmızı", "nl": "rood", "pic": ["color"]}, {"tr": "mavi", "nl": "blauw", "pic": ["color"]}, {"tr": "sarı", "nl": "geel", "pic": ["color"]}, {"tr": "yeşil", "nl": "groen", "pic": ["color"]}]}, {"page": 5, "tr": "Renkler", "nl": "Kleuren", "stack": false, "items": [{"tr": "turuncu", "nl": "oranje", "pic": ["color"]}, {"tr": "mor", "nl": "paars", "pic": ["color"]}, {"tr": "pembe", "nl": "roze", "pic": ["color"]}, {"tr": "kahverengi", "nl": "bruin", "pic": ["color"]}]}, {"page": 6, "tr": "Renkler", "nl": "Kleuren", "stack": false, "items": [{"tr": "siyah", "nl": "zwart", "pic": ["color"]}, {"tr": "beyaz", "nl": "wit", "pic": ["color"]}, {"tr": "gri", "nl": "grijs", "pic": ["color"]}]}, {"page": 7, "tr": "Günler", "nl": "De dagen", "stack": false, "items": [{"tr": "pazartesi", "nl": "maandag", "pic": null}, {"tr": "salı", "nl": "dinsdag", "pic": null}, {"tr": "çarşamba", "nl": "woensdag", "pic": null}, {"tr": "perşembe", "nl": "donderdag", "pic": null}]}, {"page": 8, "tr": "Günler", "nl": "De dagen", "stack": false, "items": [{"tr": "cuma", "nl": "vrijdag", "pic": null}, {"tr": "cumartesi", "nl": "zaterdag", "pic": null}, {"tr": "pazar", "nl": "zondag", "pic": null}]}, {"page": 9, "tr": "Sayılar", "nl": "Getallen", "stack": false, "items": [{"tr": "bir", "nl": "een", "pic": ["num", "1"]}, {"tr": "iki", "nl": "twee", "pic": ["num", "2"]}, {"tr": "üç", "nl": "drie", "pic": ["num", "3"]}, {"tr": "dört", "nl": "vier", "pic": ["num", "4"]}, {"tr": "beş", "nl": "vijf", "pic": ["num", "5"]}]}, {"page": 10, "tr": "Sayılar", "nl": "Getallen", "stack": false, "items": [{"tr": "altı", "nl": "zes", "pic": ["num", "6"]}, {"tr": "yedi", "nl": "zeven", "pic": ["num", "7"]}, {"tr": "sekiz", "nl": "acht", "pic": ["num", "8"]}, {"tr": "dokuz", "nl": "negen", "pic": ["num", "9"]}, {"tr": "on", "nl": "tien", "pic": ["num", "10"]}]}, {"page": 11, "tr": "Sayılar", "nl": "Getallen", "stack": false, "items": [{"tr": "on bir", "nl": "elf", "pic": ["num", "11"]}, {"tr": "on iki", "nl": "twaalf", "pic": ["num", "12"]}, {"tr": "on üç", "nl": "dertien", "pic": ["num", "13"]}, {"tr": "on dört", "nl": "veertien", "pic": ["num", "14"]}, {"tr": "on beş", "nl": "vijftien", "pic": ["num", "15"]}]}, {"page": 12, "tr": "Sayılar", "nl": "Getallen", "stack": false, "items": [{"tr": "on altı", "nl": "zestien", "pic": ["num", "16"]}, {"tr": "on yedi", "nl": "zeventien", "pic": ["num", "17"]}, {"tr": "on sekiz", "nl": "achttien", "pic": ["num", "18"]}, {"tr": "on dokuz", "nl": "negentien", "pic": ["num", "19"]}, {"tr": "yirmi", "nl": "twintig", "pic": ["num", "20"]}]}, {"page": 13, "tr": "Hayvanlar", "nl": "Dieren", "stack": false, "items": [{"tr": "kedi", "nl": "de kat", "pic": "1F431"}, {"tr": "köpek", "nl": "de hond", "pic": "1F436"}, {"tr": "kuş", "nl": "de vogel", "pic": "1F426"}, {"tr": "balık", "nl": "de vis", "pic": "1F41F"}, {"tr": "at", "nl": "het paard", "pic": "1F434"}]}, {"page": 14, "tr": "Hayvanlar", "nl": "Dieren", "stack": false, "items": [{"tr": "inek", "nl": "de koe", "pic": "1F42E"}, {"tr": "koyun", "nl": "het schaap", "pic": "1F411"}, {"tr": "tavşan", "nl": "het konijn", "pic": "1F430"}, {"tr": "ördek", "nl": "de eend", "pic": "1F986"}, {"tr": "tavuk", "nl": "de kip", "pic": "1F414"}]}, {"page": 15, "tr": "Hayvanlar", "nl": "Dieren", "stack": false, "items": [{"tr": "fare", "nl": "de muis", "pic": "1F42D"}, {"tr": "kurbağa", "nl": "de kikker", "pic": "1F438"}, {"tr": "kelebek", "nl": "de vlinder", "pic": "1F98B"}, {"tr": "aslan", "nl": "de leeuw", "pic": "1F981"}, {"tr": "fil", "nl": "de olifant", "pic": "1F418"}]}, {"page": 16, "tr": "Hayvanlar", "nl": "Dieren", "stack": false, "items": [{"tr": "maymun", "nl": "de aap", "pic": "1F435"}, {"tr": "ayı", "nl": "de beer", "pic": "1F43B"}, {"tr": "zürafa", "nl": "de giraf", "pic": "1F992"}]}, {"page": 17, "tr": "Ailem", "nl": "Mijn familie", "stack": false, "items": [{"tr": "anne", "nl": "mama", "pic": "1F469"}, {"tr": "baba", "nl": "papa", "pic": "1F468"}, {"tr": "erkek kardeş", "nl": "de broer", "pic": "1F466"}, {"tr": "kız kardeş", "nl": "de zus", "pic": "1F467"}, {"tr": "dede", "nl": "opa", "pic": "1F474"}]}, {"page": 18, "tr": "Ailem", "nl": "Mijn familie", "stack": false, "items": [{"tr": "nine", "nl": "oma", "pic": "1F475"}, {"tr": "bebek", "nl": "de baby", "pic": "1F476"}, {"tr": "çocuk", "nl": "het kind", "pic": "1F9D2"}, {"tr": "oğlan", "nl": "de jongen", "pic": "1F466"}, {"tr": "kız", "nl": "het meisje", "pic": "1F467"}]}, {"page": 19, "tr": "Ailem", "nl": "Mijn familie", "stack": false, "items": [{"tr": "arkadaş", "nl": "de vriend", "pic": "1F91D"}, {"tr": "öğretmen (kadın)", "nl": "de juf", "pic": "1F469-200D-1F3EB"}, {"tr": "öğretmen (erkek)", "nl": "de meester", "pic": "1F468-200D-1F3EB"}]}, {"page": 20, "tr": "Yiyecekler", "nl": "Eten en drinken", "stack": false, "items": [{"tr": "elma", "nl": "de appel", "pic": "1F34E"}, {"tr": "muz", "nl": "de banaan", "pic": "1F34C"}, {"tr": "armut", "nl": "de peer", "pic": "1F350"}, {"tr": "çilek", "nl": "de aardbei", "pic": "1F353"}]}, {"page": 21, "tr": "Yiyecekler", "nl": "Eten en drinken", "stack": false, "items": [{"tr": "üzüm", "nl": "de druif", "pic": "1F347"}, {"tr": "portakal", "nl": "de sinaasappel", "pic": "1F34A"}, {"tr": "karpuz", "nl": "de watermeloen", "pic": "1F349"}, {"tr": "havuç", "nl": "de wortel", "pic": "1F955"}]}, {"page": 22, "tr": "Yiyecekler", "nl": "Eten en drinken", "stack": false, "items": [{"tr": "ekmek", "nl": "het brood", "pic": "1F35E"}, {"tr": "peynir", "nl": "de kaas", "pic": "1F9C0"}, {"tr": "yumurta", "nl": "het ei", "pic": "1F95A"}, {"tr": "süt", "nl": "de melk", "pic": "1F95B"}]}, {"page": 23, "tr": "Yiyecekler", "nl": "Eten en drinken", "stack": false, "items": [{"tr": "su", "nl": "het water", "pic": "1F4A7"}, {"tr": "dondurma", "nl": "het ijsje", "pic": "1F366"}, {"tr": "kurabiye", "nl": "het koekje", "pic": "1F36A"}, {"tr": "domates", "nl": "de tomaat", "pic": "1F345"}]}, {"page": 24, "tr": "Okulda", "nl": "Op school", "stack": false, "items": [{"tr": "okul", "nl": "de school", "pic": "1F3EB"}, {"tr": "sınıf", "nl": "de klas", "pic": "1F9D1-200D-1F3EB"}, {"tr": "kitap", "nl": "het boek", "pic": "1F4D5"}, {"tr": "kurşun kalem", "nl": "het potlood", "pic": "270F"}]}, {"page": 25, "tr": "Okulda", "nl": "Op school", "stack": false, "items": [{"tr": "boya kalemi", "nl": "het kleurpotlood", "pic": "1F58D"}, {"tr": "kağıt", "nl": "het papier", "pic": "1F4C4"}, {"tr": "makas", "nl": "de schaar", "pic": "2702"}, {"tr": "çanta", "nl": "de tas", "pic": "1F392"}]}, {"page": 26, "tr": "Okulda", "nl": "Op school", "stack": false, "items": [{"tr": "sandalye", "nl": "de stoel", "pic": "1FA91"}, {"tr": "top", "nl": "de bal", "pic": "26BD"}, {"tr": "oyuncak", "nl": "het speelgoed", "pic": "1F9F8"}, {"tr": "tuvalet", "nl": "de wc", "pic": "1F6BD"}]}, {"page": 27, "tr": "Konuşalım", "nl": "Korte zinnen", "stack": true, "items": [{"tr": "Merhaba", "nl": "Hallo", "pic": "1F44B"}, {"tr": "Günaydın", "nl": "Goedemorgen", "pic": "1F305"}, {"tr": "Hoşça kal", "nl": "Doei", "pic": "1F44B"}, {"tr": "Teşekkür ederim", "nl": "Dank je wel", "pic": "1F64F"}]}, {"page": 28, "tr": "Konuşalım", "nl": "Korte zinnen", "stack": true, "items": [{"tr": "Lütfen / Buyrun", "nl": "Alsjeblieft", "pic": null}, {"tr": "Evet", "nl": "Ja", "pic": null}, {"tr": "Hayır", "nl": "Nee", "pic": null}, {"tr": "Özür dilerim", "nl": "Sorry", "pic": null}]}, {"page": 29, "tr": "Konuşalım", "nl": "Korte zinnen", "stack": true, "items": [{"tr": "Benim adım Ömer", "nl": "Ik heet Ömer", "pic": null}, {"tr": "Acıktım", "nl": "Ik heb honger", "pic": "1F37D"}, {"tr": "Susadım", "nl": "Ik heb dorst", "pic": "1F964"}, {"tr": "Tuvalete gidebilir miyim?", "nl": "Mag ik naar de wc?", "pic": "1F6BD"}]}, {"page": 30, "tr": "Konuşalım", "nl": "Korte zinnen", "stack": true, "items": [{"tr": "Ben de oynayabilir miyim?", "nl": "Mag ik meespelen?", "pic": "26BD"}, {"tr": "Bana yardım eder misin?", "nl": "Kun je me helpen?", "pic": null}, {"tr": "Anlamadım", "nl": "Ik begrijp het niet", "pic": "1F914"}]}];
+const COLORS = {rood:"#e53935",blauw:"#1e63d6",geel:"#fdd835",groen:"#43a047",oranje:"#fb8c00",paars:"#8e24aa",
+  roze:"#f48fb1",bruin:"#795548",zwart:"#111111",wit:"#ffffff",grijs:"#9e9e9e"};
+const TOPIC_ICON = {"Vücudum":"1F642","Renkler":"1F58D","Günler":"1F305","Sayılar":"1F4D5","Hayvanlar":"1F431",
+  "Ailem":"1F469","Yiyecekler":"1F34E","Okulda":"1F3EB","Konuşalım":"1F44B"};
+
+/* ---------- settings (kept only on this phone) ---------- */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem("hk_"+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem("hk_"+k, JSON.stringify(v)); }catch(e){} }
+};
+let slow = store.get("slow", false);
+let turkishFirst = store.get("tr", false);
+let repeat = store.get("rep", 1);
+
+/* ---------- speech ---------- */
+const synth = window.speechSynthesis;
+let voices = [];
+function refreshVoices(){ if(synth) voices = synth.getVoices(); }
+if(synth){ refreshVoices(); synth.onvoiceschanged = () => { refreshVoices(); if(route().page) renderSettingsVoices(); }; }
+function norm(l){ return (l||"").toLowerCase().replace("_","-"); }
+function nlVoices(){ return voices.filter(v=>norm(v.lang).startsWith("nl")).sort((a,b)=>(norm(a.lang)==="nl-nl"?0:1)-(norm(b.lang)==="nl-nl"?0:1)); }
+function pickVoice(lang){
+  if(lang==="nl"){
+    const saved = store.get("voice", null);
+    const list = nlVoices();
+    return list.find(v=>v.name===saved) || list.find(v=>norm(v.lang)==="nl-nl") || list[0] || null;
+  }
+  return voices.find(v=>norm(v.lang)==="tr-tr") || voices.find(v=>norm(v.lang).startsWith("tr")) || null;
+}
+function sayOnce(text, lang){
+  return new Promise(res=>{
+    if(!synth){ res(); return; }
+    const u = new SpeechSynthesisUtterance(text);
+    const v = pickVoice(lang);
+    if(v){ u.voice=v; u.lang=v.lang; } else { u.lang = lang==="nl" ? "nl-NL" : "tr-TR"; }
+    u.rate = lang==="nl" ? (slow ? 0.6 : 0.9) : 1.0;
+    let done=false; const fin=()=>{ if(!done){done=true; clearTimeout(t); res();} };
+    const t = setTimeout(fin, 1500 + text.length*180/u.rate);   // some Android builds never fire onend
+    u.onend = fin; u.onerror = fin;
+    synth.speak(u);
+    if(synth.paused) synth.resume();
+  });
+}
+const wait = ms => new Promise(r=>setTimeout(r,ms));
+let runId = 0;
+async function sayItem(item, card, id){
+  card && card.classList.add("on");
+  if(turkishFirst && pickVoice("tr")){ await sayOnce(item.tr.replace(/\(.*?\)/g,""), "tr"); if(id!==runId) return; await wait(250); }
+  for(let i=0;i<repeat;i++){
+    await sayOnce(item.nl, "nl");
+    if(id!==runId) break;
+    if(i<repeat-1) await wait(450);
+  }
+  card && card.classList.remove("on");
+}
+function stopAll(){ runId++; if(synth) synth.cancel(); document.querySelectorAll(".card.on").forEach(c=>c.classList.remove("on")); setPlaying(false); }
+
+/* ---------- routing ---------- */
+function route(){ const p = new URLSearchParams(location.search).get("s"); const n = parseInt(p,10); return {page: PAGES.find(x=>x.page===n) || null}; }
+function go(n){ stopAll(); history.pushState({}, "", n ? "?s="+n : "./"); render(); window.scrollTo(0,0); }
+window.addEventListener("popstate", ()=>{ stopAll(); render(); });
+
+/* ---------- rendering ---------- */
+const app = document.getElementById("app");
+function el(tag, attrs={}, ...kids){
+  const e=document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){ if(k==="class") e.className=v; else if(k.startsWith("on")) e.addEventListener(k.slice(2),v); else if(v!==null && v!==undefined) e.setAttribute(k,v); }
+  for(const k of kids.flat()){ if(k===null||k===undefined) continue; e.append(k.nodeType?k:document.createTextNode(k)); }
+  return e;
+}
+function picEl(item){
+  const p=item.pic;
+  if(typeof p==="string") return el("div",{class:"pic"}, el("img",{src:`img/${p}.svg`,alt:""}));
+  if(Array.isArray(p) && p[0]==="color"){ const d=el("div",{class:"dot"}); d.style.background=COLORS[item.nl]||"#ccc"; return el("div",{class:"pic"},d); }
+  if(Array.isArray(p) && p[0]==="num") return el("div",{class:"pic"}, el("span",{class:"num"},p[1]));
+  return el("div",{class:"pic"}, el("span",{class:"none","aria-hidden":"true"},"💬"));
+}
+function nlEl(nl){
+  const m = nl.match(/^(de|het) (.+)$/);
+  return m ? el("span",{class:"nl"}, el("span",{class:"art"},m[1]+" "), m[2]) : el("span",{class:"nl"}, nl);
+}
+let playBtn=null;
+function setPlaying(on){ if(playBtn){ playBtn.setAttribute("aria-pressed", on?"true":"false"); playBtn.textContent = on ? "■  Durdur" : "▶  Hepsini oku"; } }
+
+function renderPage(pg){
+  const i = PAGES.indexOf(pg);
+  const prev = PAGES[i-1], next = PAGES[i+1];
+  const cards = pg.items.map(item=>{
+    const c = el("button",{class:"card"+(pg.stack?" stack":""), type:"button", "aria-label":`${item.nl} — ${item.tr}`},
+      picEl(item), el("span",{class:"txt"}, nlEl(item.nl), el("span",{class:"tr"}, item.tr)));
+    c.addEventListener("click", async ()=>{ stopAll(); const id=++runId; await sayItem(item, c, id); });
+    return c;
+  });
+  playBtn = el("button",{class:"ctl play",type:"button","aria-pressed":"false"},"▶  Hepsini oku");
+  playBtn.addEventListener("click", async ()=>{
+    if(playBtn.getAttribute("aria-pressed")==="true"){ stopAll(); return; }
+    stopAll(); const id=++runId; setPlaying(true);
+    for(let k=0;k<pg.items.length;k++){
+      cards[k].scrollIntoView({block:"nearest",behavior:"smooth"});
+      await sayItem(pg.items[k], cards[k], id);
+      if(id!==runId) return;
+      await wait(900);
+      if(id!==runId) return;
+    }
+    setPlaying(false);
+  });
+  const toggle = (label, key, get, set) => {
+    const b = el("button",{class:"ctl",type:"button","aria-pressed":String(get())}, label);
+    b.addEventListener("click",()=>{ set(!get()); store.set(key, get()); b.setAttribute("aria-pressed", String(get())); });
+    return b;
+  };
+  const slowBtn = toggle("🐢  Yavaş","slow",()=>slow,v=>slow=v);
+  const trBtn = toggle("🇹🇷  Önce Türkçe","tr",()=>turkishFirst,v=>turkishFirst=v);
+  const repBtn = toggle("🔁  2 kez","rep",()=>repeat===2,v=>repeat=v?2:1);
+
+  app.replaceChildren(
+    el("div",{class:"bar"},
+      el("a",{class:"nav",href:prev?`?s=${prev.page}`:"#", "aria-label":"Önceki sayfa","aria-disabled":prev?"false":"true", onclick:e=>{e.preventDefault(); prev&&go(prev.page);}},"‹"),
+      el("div",{class:"ttl"}, el("h1",{}, `${pg.tr} · ${pg.nl}`), el("small",{}, `Sayfa ${pg.page} / ${PAGES.length}`)),
+      el("a",{class:"nav",href:next?`?s=${next.page}`:"#", "aria-label":"Sonraki sayfa","aria-disabled":next?"false":"true", onclick:e=>{e.preventDefault(); next&&go(next.page);}},"›")
+    ),
+    el("div",{class:"controls"}, playBtn, slowBtn, repBtn, trBtn),
+    noVoiceWarning(),
+    el("div",{class:"cards"}, cards),
+    settings(),
+    el("footer",{}, el("a",{href:"./",onclick:e=>{e.preventDefault(); go(null);}},"Tüm sayfalar"), " · Resimler: ",
+      el("a",{href:"https://openmoji.org",target:"_blank",rel:"noopener"},"OpenMoji"), " (CC BY-SA 4.0)")
+  );
+}
+function noVoiceWarning(){
+  const w = el("div",{class:"warn",id:"nowarn",hidden:""},
+    "Bu telefonda Hollandaca ses bulunamadı. Ayarlar → Metin okuma → Google → Dilleri yükle → Nederlands (Nederland).");
+  setTimeout(()=>{ refreshVoices(); if(synth && voices.length && !nlVoices().length) w.hidden=false; if(!synth) { w.textContent="Bu tarayıcı sesli okumayı desteklemiyor. Chrome ya da Safari'de aç."; w.hidden=false; } }, 1200);
+  return w;
+}
+let voiceSel=null;
+function renderSettingsVoices(){
+  if(!voiceSel) return;
+  const list = nlVoices(); const cur = pickVoice("nl");
+  voiceSel.replaceChildren(...(list.length ? list.map(v=>el("option",{value:v.name, selected: cur&&v.name===cur.name ? "" : null},
+    `${v.name} (${norm(v.lang)==="nl-be"?"Belçika":"Hollanda"})`)) : [el("option",{},"Ses listesi yükleniyor…")]));
+}
+function settings(){
+  voiceSel = el("select",{id:"voice"});
+  voiceSel.addEventListener("change",()=>{ store.set("voice", voiceSel.value); stopAll(); sayOnce("Hallo Ömer!","nl"); });
+  renderSettingsVoices();
+  return el("details",{class:"set"}, el("summary",{},"⚙  Ses ayarları"),
+    el("div",{class:"body"},
+      el("label",{for:"voice"},"Hollandaca ses"), voiceSel,
+      el("p",{},"Seçim sadece bu telefonda saklanır. \"nl-BE\" sesleri Belçika aksanıdır; okul için Hollanda seslerini seç.")));
+}
+function renderHome(){
+  const groups = [];
+  for(const p of PAGES){ const g = groups.find(x=>x.tr===p.tr); if(g) g.pages.push(p); else groups.push({tr:p.tr,nl:p.nl,pages:[p]}); }
+  app.replaceChildren(
+    el("div",{class:"hero"}, el("h1",{},"Ömer'in kelime kartları"),
+      el("p",{},"Kağıttaki QR kodu okut ya da aşağıdan bir sayfa seç. Kelimeye dokununca telefon Hollandaca okur.")),
+    el("div",{class:"topics"}, groups.map(g=>el("div",{class:"topic"},
+      el("img",{src:`img/${TOPIC_ICON[g.tr]||"1F4D5"}.svg`,alt:""}),
+      el("div",{}, el("h2",{}, `${g.tr} · ${g.nl}`),
+        el("div",{class:"chips"}, g.pages.map(p=>el("a",{class:"chip",href:`?s=${p.page}`,onclick:e=>{e.preventDefault(); go(p.page);}}, String(p.page)))))))),
+    el("footer",{}, "Resimler: ", el("a",{href:"https://openmoji.org",target:"_blank",rel:"noopener"},"OpenMoji"), " (CC BY-SA 4.0)")
+  );
+}
+function render(){ const r = route(); if(r.page){ document.title = `${r.page.nl} · Ömer`; renderPage(r.page); } else { document.title="Ömer'in Kelime Kartları"; renderHome(); } }
+render();
+</script>
+</body>
+</html>
