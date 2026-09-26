@@ -23,7 +23,10 @@
   }
 }
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0}
+/* no double-tap zoom / 300ms delay on buttons (iOS + Android) */
+button,a,select,input{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:16px;line-height:1.45;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 .wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:12px 40px;display:grid;gap:14px}
@@ -44,6 +47,20 @@ button:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(
 .ctl[aria-pressed="true"]{background:var(--blue-soft);border-color:var(--blue);color:var(--ink)}
 .ctl.play{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .ctl.play[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+
+/* speed slider */
+.speed{display:grid;grid-template-columns:48px 1fr 48px auto;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:4px 12px 4px 6px;box-shadow:var(--shadow)}
+.spd{width:48px;height:48px;border:0;border-radius:12px;background:transparent;font-size:1.7rem;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.spd:active{background:var(--blue-soft)}
+.speed output{font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);min-width:3.2em;text-align:right}
+.rate{--p:50%;-webkit-appearance:none;appearance:none;width:100%;height:44px;margin:0;padding:0;background:transparent;cursor:pointer;touch-action:pan-y}
+.rate:focus{outline:none}
+.rate:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:8px}
+.rate::-webkit-slider-runnable-track{height:10px;border-radius:999px;background:linear-gradient(to right,var(--accent) 0,var(--accent) var(--p),var(--line) var(--p),var(--line) 100%)}
+.rate::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;margin-top:-10px;border-radius:50%;background:var(--card);border:3px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.rate::-moz-range-track{height:10px;border-radius:999px;background:var(--line);border:0}
+.rate::-moz-range-progress{height:10px;border-radius:999px;background:var(--accent)}
+.rate::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--card);border:3px solid var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.35)}
 
 /* cards */
 .cards{display:grid;grid-template-columns:1fr;gap:12px}
@@ -104,15 +121,29 @@ const store = {
   get(k,d){ try{ const v=localStorage.getItem("hk_"+k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
   set(k,v){ try{ localStorage.setItem("hk_"+k, JSON.stringify(v)); }catch(e){} }
 };
-let slow = store.get("slow", false);
+const RATE_MIN = 0.5, RATE_MAX = 1.2, RATE_STEP = 0.05, RATE_DEFAULT = 0.9;
+const clampRate = r => Math.min(RATE_MAX, Math.max(RATE_MIN, +(Math.round(r / RATE_STEP) * RATE_STEP).toFixed(2)));
+let rate = store.get("rate", null);
+if(typeof rate !== "number" || !isFinite(rate)) rate = store.get("slow", false) ? 0.6 : RATE_DEFAULT;  // old 🐢 setting
+rate = clampRate(rate);
 let turkishFirst = store.get("tr", false);
 let repeat = store.get("rep", 1);
 
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 /* ---------- speech ---------- */
-const synth = window.speechSynthesis;
+const synth = ("speechSynthesis" in window) ? window.speechSynthesis : null;
 let voices = [];
-function refreshVoices(){ if(synth) voices = synth.getVoices(); }
-if(synth){ refreshVoices(); synth.onvoiceschanged = () => { refreshVoices(); if(route().page) renderSettingsVoices(); }; }
+function refreshVoices(){ if(synth){ try{ voices = synth.getVoices() || []; }catch(e){ voices = []; } } }
+function onVoices(){ refreshVoices(); if(route().page) renderSettingsVoices(); }
+if(synth){
+  refreshVoices();
+  if(typeof synth.addEventListener === "function") synth.addEventListener("voiceschanged", onVoices);
+  else synth.onvoiceschanged = onVoices;
+  // iOS Safari often never fires voiceschanged: poll for a few seconds
+  let tries = 0;
+  const poll = setInterval(()=>{ refreshVoices(); if(voices.length || ++tries > 20){ clearInterval(poll); onVoices(); } }, 250);
+}
 function norm(l){ return (l||"").toLowerCase().replace("_","-"); }
 function nlVoices(){ return voices.filter(v=>norm(v.lang).startsWith("nl")).sort((a,b)=>(norm(a.lang)==="nl-nl"?0:1)-(norm(b.lang)==="nl-nl"?0:1)); }
 function pickVoice(lang){
@@ -123,17 +154,19 @@ function pickVoice(lang){
   }
   return voices.find(v=>norm(v.lang)==="tr-tr") || voices.find(v=>norm(v.lang).startsWith("tr")) || null;
 }
+let liveUtt = null;   // keep a reference: Chrome can garbage-collect the utterance and then never fires onend
 function sayOnce(text, lang){
   return new Promise(res=>{
-    if(!synth){ res(); return; }
+    if(!synth || typeof SpeechSynthesisUtterance === "undefined"){ res(); return; }
     const u = new SpeechSynthesisUtterance(text);
     const v = pickVoice(lang);
     if(v){ u.voice=v; u.lang=v.lang; } else { u.lang = lang==="nl" ? "nl-NL" : "tr-TR"; }
-    u.rate = lang==="nl" ? (slow ? 0.6 : 0.9) : 1.0;
-    let done=false; const fin=()=>{ if(!done){done=true; clearTimeout(t); res();} };
+    u.rate = lang==="nl" ? rate : 1.0;       // slider value is read for every word, so a change applies from the next word
+    let done=false; const fin=()=>{ if(!done){done=true; clearTimeout(t); if(liveUtt===u) liveUtt=null; res();} };
     const t = setTimeout(fin, 1500 + text.length*180/u.rate);   // some Android builds never fire onend
     u.onend = fin; u.onerror = fin;
-    synth.speak(u);
+    liveUtt = u;
+    synth.speak(u);   // called synchronously inside the tap handler, which iOS needs for the first word
     if(synth.paused) synth.resume();
   });
 }
@@ -149,7 +182,16 @@ async function sayItem(item, card, id){
   }
   card && card.classList.remove("on");
 }
-function stopAll(){ runId++; if(synth) synth.cancel(); document.querySelectorAll(".card.on").forEach(c=>c.classList.remove("on")); setPlaying(false); }
+function stopAll(){
+  runId++;
+  // cancel() right before speak() can swallow the new word in Safari, so only cancel when something is actually queued
+  if(synth && (synth.speaking || synth.pending)) synth.cancel();
+  Array.prototype.forEach.call(document.querySelectorAll(".card.on"), c=>c.classList.remove("on"));
+  setPlaying(false);
+}
+// leaving the app mid-sentence can leave speech stuck (iOS/Android): stop cleanly
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden) stopAll(); });
+window.addEventListener("pagehide", ()=>stopAll());
 
 /* ---------- routing ---------- */
 function route(){ const p = new URLSearchParams(location.search).get("s"); const n = parseInt(p,10); return {page: PAGES.find(x=>x.page===n) || null}; }
@@ -158,6 +200,12 @@ window.addEventListener("popstate", ()=>{ stopAll(); render(); });
 
 /* ---------- rendering ---------- */
 const app = document.getElementById("app");
+function setKids(node, ...kids){   // replaceChildren is missing before iOS 14
+  kids = kids.flat().filter(k=>k!==null && k!==undefined);
+  if(typeof node.replaceChildren === "function"){ node.replaceChildren(...kids); return; }
+  while(node.firstChild) node.removeChild(node.firstChild);
+  kids.forEach(k=>node.appendChild(k.nodeType ? k : document.createTextNode(k)));
+}
 function el(tag, attrs={}, ...kids){
   const e=document.createElement(tag);
   for(const [k,v] of Object.entries(attrs)){ if(k==="class") e.className=v; else if(k.startsWith("on")) e.addEventListener(k.slice(2),v); else if(v!==null && v!==undefined) e.setAttribute(k,v); }
@@ -205,17 +253,22 @@ function renderPage(pg){
     b.addEventListener("click",()=>{ set(!get()); store.set(key, get()); b.setAttribute("aria-pressed", String(get())); });
     return b;
   };
-  const slowBtn = toggle("🐢  Yavaş","slow",()=>slow,v=>slow=v);
   const trBtn = toggle("🇹🇷  Önce Türkçe","tr",()=>turkishFirst,v=>turkishFirst=v);
   const repBtn = toggle("🔁  2 kez","rep",()=>repeat===2,v=>repeat=v?2:1);
+  const speed = speedControl(()=>{
+    // preview the new speed with the first word, but never interrupt "Hepsini oku"
+    if(playBtn && playBtn.getAttribute("aria-pressed")==="true") return;
+    stopAll(); const id=++runId; sayItem(pg.items[0], cards[0], id);
+  });
 
-  app.replaceChildren(
+  setKids(app,
     el("div",{class:"bar"},
       el("a",{class:"nav",href:prev?`?s=${prev.page}`:"#", "aria-label":"Önceki sayfa","aria-disabled":prev?"false":"true", onclick:e=>{e.preventDefault(); prev&&go(prev.page);}},"‹"),
       el("div",{class:"ttl"}, el("h1",{}, `${pg.tr} · ${pg.nl}`), el("small",{}, `Sayfa ${pg.page} / ${PAGES.length}`)),
       el("a",{class:"nav",href:next?`?s=${next.page}`:"#", "aria-label":"Sonraki sayfa","aria-disabled":next?"false":"true", onclick:e=>{e.preventDefault(); next&&go(next.page);}},"›")
     ),
-    el("div",{class:"controls"}, playBtn, slowBtn, repBtn, trBtn),
+    el("div",{class:"controls"}, playBtn, repBtn, trBtn),
+    speed,
     noVoiceWarning(),
     el("div",{class:"cards"}, cards),
     settings(),
@@ -223,18 +276,40 @@ function renderPage(pg){
       el("a",{href:"https://openmoji.org",target:"_blank",rel:"noopener"},"OpenMoji"), " (CC BY-SA 4.0)")
   );
 }
+function speedControl(preview){
+  const fmt = r => r.toFixed(2).replace(/0$/,"") + "×";
+  const pct = r => ((r - RATE_MIN) / (RATE_MAX - RATE_MIN) * 100) + "%";
+  const out = el("output",{"aria-hidden":"true"}, fmt(rate));
+  const range = el("input",{type:"range",class:"rate",min:RATE_MIN,max:RATE_MAX,step:RATE_STEP,value:rate,"aria-label":"Okuma hızı"});
+  const show = ()=>{ out.textContent = fmt(rate); range.style.setProperty("--p", pct(rate)); range.setAttribute("aria-valuetext", fmt(rate)); };
+  const setRate = (r, speak)=>{ rate = clampRate(r); range.value = rate; store.set("rate", rate); show(); if(speak) preview(); };
+  range.addEventListener("input", ()=>setRate(parseFloat(range.value), false));   // live while dragging
+  range.addEventListener("change", ()=>setRate(parseFloat(range.value), true));   // on release: hear it
+  // iOS Safari only moves a slider by dragging the thumb, so the animals also step the speed
+  const slower = el("button",{class:"spd",type:"button","aria-label":"Daha yavaş"},"🐢");
+  const faster = el("button",{class:"spd",type:"button","aria-label":"Daha hızlı"},"🐇");
+  slower.addEventListener("click", ()=>setRate(rate - 0.1, true));
+  faster.addEventListener("click", ()=>setRate(rate + 0.1, true));
+  show();
+  return el("div",{class:"speed",role:"group","aria-label":"Okuma hızı"}, slower, range, faster, out);
+}
 function noVoiceWarning(){
   const w = el("div",{class:"warn",id:"nowarn",hidden:""},
-    "Bu telefonda Hollandaca ses bulunamadı. Ayarlar → Metin okuma → Google → Dilleri yükle → Nederlands (Nederland).");
-  setTimeout(()=>{ refreshVoices(); if(synth && voices.length && !nlVoices().length) w.hidden=false; if(!synth) { w.textContent="Bu tarayıcı sesli okumayı desteklemiyor. Chrome ya da Safari'de aç."; w.hidden=false; } }, 1200);
+    IS_IOS ? "Bu iPhone'da Hollandaca ses bulunamadı. Ayarlar → Erişilebilirlik → Seslendirilen İçerik → Sesler → Nederlands → bir ses indir."
+           : "Bu telefonda Hollandaca ses bulunamadı. Ayarlar → Metin okuma → Google → Dilleri yükle → Nederlands (Nederland).");
+  setTimeout(()=>{
+    refreshVoices();
+    if(!synth){ w.textContent="Bu tarayıcı sesli okumayı desteklemiyor. Chrome ya da Safari'de aç."; w.hidden=false; }
+    else if(voices.length && !nlVoices().length) w.hidden=false;
+  }, 2500);   // iOS loads its voice list late
   return w;
 }
 let voiceSel=null;
 function renderSettingsVoices(){
   if(!voiceSel) return;
   const list = nlVoices(); const cur = pickVoice("nl");
-  voiceSel.replaceChildren(...(list.length ? list.map(v=>el("option",{value:v.name, selected: cur&&v.name===cur.name ? "" : null},
-    `${v.name} (${norm(v.lang)==="nl-be"?"Belçika":"Hollanda"})`)) : [el("option",{},"Ses listesi yükleniyor…")]));
+  setKids(voiceSel, list.length ? list.map(v=>el("option",{value:v.name, selected: cur&&v.name===cur.name ? "" : null},
+    `${v.name} (${norm(v.lang)==="nl-be"?"Belçika":"Hollanda"})`)) : [el("option",{},"Ses listesi yükleniyor…")]);
 }
 function settings(){
   voiceSel = el("select",{id:"voice"});
@@ -243,12 +318,13 @@ function settings(){
   return el("details",{class:"set"}, el("summary",{},"⚙  Ses ayarları"),
     el("div",{class:"body"},
       el("label",{for:"voice"},"Hollandaca ses"), voiceSel,
-      el("p",{},"Seçim sadece bu telefonda saklanır. \"nl-BE\" sesleri Belçika aksanıdır; okul için Hollanda seslerini seç.")));
+      el("p",{},"Seçim sadece bu telefonda saklanır. \"nl-BE\" sesleri Belçika aksanıdır; okul için Hollanda seslerini seç."),
+      IS_IOS ? el("p",{},"iPhone'da ses gelmiyorsa yandaki sessiz düğmesini kapat ve sesi aç.") : null));
 }
 function renderHome(){
   const groups = [];
   for(const p of PAGES){ const g = groups.find(x=>x.tr===p.tr); if(g) g.pages.push(p); else groups.push({tr:p.tr,nl:p.nl,pages:[p]}); }
-  app.replaceChildren(
+  setKids(app,
     el("div",{class:"hero"}, el("h1",{},"Ömer'in kelime kartları"),
       el("p",{},"Kağıttaki QR kodu okut ya da aşağıdan bir sayfa seç. Kelimeye dokununca telefon Hollandaca okur.")),
     el("div",{class:"topics"}, groups.map(g=>el("div",{class:"topic"},
